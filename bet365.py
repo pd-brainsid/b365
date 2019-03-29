@@ -3,8 +3,12 @@ import time
 import csv
 import re
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.chrome.options import Options
 
-driver = webdriver.Chrome()
+options = Options()
+# options.add_argument('--headless')
+# options.add_argument('--disable-gpu')
+driver = webdriver.Chrome(chrome_options=options)
 driver.implicitly_wait(10)
 
 
