@@ -3,17 +3,23 @@ import time
 import csv
 import re
 from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.chrome.options import Options
+# from selenium.webdriver.chrome.options import Options
 
-options = Options()
-# options.add_argument('--headless')
-# options.add_argument('--disable-gpu')
-driver = webdriver.Chrome(chrome_options=options)
+
+# user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36"
+# proxy = ""
+options = webdriver.FirefoxOptions()
+options.add_argument('-headless')
+# options.add_argument("user-agent=%s" % user_agent)
+    # options.add_argument('--headless')
+    # options.add_argument('--disable-gpu')
+driver = webdriver.Firefox(options=options)
 driver.implicitly_wait(10)
 
 
 def login():
     driver.get('https://www.bet365.com/en/')
+    # driver.find_element_by_css_selector('[title="Live In-Play"]').click()
 
     try:
         driver.find_element_by_css_selector('[title="Live In-Play"]').click()
@@ -53,7 +59,6 @@ for cid in range(len(categories[:1])):
     # item['category_name'] = category.find_element_by_css_selector('[class="ipn-ClassificationButton_Label "]').text
     subcategories = category.find_elements_by_css_selector('[class="ipn-Competition "]')
     for sid in range(len(subcategories[:3])):
-        # item = {}
         subcategories = category.find_elements_by_css_selector('[class="ipn-Competition "]')
         subcategory = subcategories[sid]
         # item['category_name'] = category.find_element_by_css_selector('[class="ipn-ClassificationButton_Label "]').text
@@ -73,7 +78,6 @@ def run():
         teams = stat.find_elements_by_class_name('ipn-TeamStack_Team')
         item['team1'] = teams[0].text
         item['team2'] = teams[1].text
-        # print(item['team1'], item['team2'])
         item['timer'] = stat.find_element_by_class_name('ipn-ScoreDisplayStandard_Timer').text
         goals = stat.find_element_by_class_name('ipn-ScoreDisplayStandard_Score').text.split('-')
         item['team1_goals'] = goals[0]
