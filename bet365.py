@@ -42,28 +42,33 @@ items = []
 def open_new_tab(category_index, subcategory_index, stat_index):
     driver.execute_script("window.open('');")
     driver.switch_to.window(driver.window_handles[-1])
-    time.sleep(1)
+    time.sleep(0.1)
     login()
+    wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '[class="ipn-Classification ipn-Classification-open "]')))
     categories = driver.find_elements_by_css_selector('[class="ipn-Classification ipn-Classification-open "]')
     category = categories[category_index]
-    category.click()
-    time.sleep(1)
+    # category.click()
+    # time.sleep(1)
+    wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '[class="ipn-Competition "]')))
     subcategories = category.find_elements_by_css_selector('[class="ipn-Competition "]')
     subcategory = subcategories[subcategory_index]
+    wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '[class="ipn-CompetitionContainer "]>div')))
     stats = subcategory.find_elements_by_css_selector('[class="ipn-CompetitionContainer "]>div')
     stat = stats[stat_index]
     stat.click()
-    time.sleep(1)
+    # time.sleep(1)
     return category, subcategory, stat
 
 
 login()
+wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '[class="ipn-Classification ipn-Classification-open "]')))
 categories = driver.find_elements_by_css_selector('[class="ipn-Classification ipn-Classification-open "]')
 for cid in range(len(categories[:1])):
     category = categories[cid]
     category.click()
     time.sleep(1)
     # item['category_name'] = category.find_element_by_css_selector('[class="ipn-ClassificationButton_Label "]').text
+    wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '[class="ipn-Competition "]')))
     subcategories = category.find_elements_by_css_selector('[class="ipn-Competition "]')
     for sid in range(len(subcategories[:3])):
         # item = {}

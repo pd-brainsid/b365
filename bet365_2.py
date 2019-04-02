@@ -21,22 +21,18 @@ wait = WebDriverWait(driver, 10)
 # driver.implicitly_wait(10)
 
 
-def login():
+def login(init=False):
     driver.get('https://www.bet365.com/en/')
     # driver.find_element_by_css_selector('[title="Live In-Play"]').click()
 
-    try:
+    if init:
         elem = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '[title="Live In-Play"]')))
         elem.click()
-    except:
-        pass
     elem = wait.until(EC.presence_of_element_located((By.XPATH, '//*[text()="In-Play"]')))
     elem.click()
     elem = wait.until(EC.presence_of_element_located((By.XPATH, '//*[text()="Event View"]')))
     elem.click()
 
-
-items = []
 
 
 def open_new_tab(category_index, subcategory_index, stat_index):
@@ -60,39 +56,42 @@ def open_new_tab(category_index, subcategory_index, stat_index):
     return category, subcategory, stat
 
 
-login()
-wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '[class="ipn-Classification ipn-Classification-open "]')))
-categories = driver.find_elements_by_css_selector('[class="ipn-Classification ipn-Classification-open "]')
-# Only first category (Football)
-for category_id in range(len(categories[:1])):
-    category = categories[category_id]
-    # category.click()
-    time.sleep(1)
-    # item['category_name'] = category.find_element_by_css_selector('[class="ipn-ClassificationButton_Label "]').text
-    wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '[class="ipn-Competition "]')))
-    subcategories = category.find_elements_by_css_selector('[class="ipn-Competition "]')
-    # First 5 subcategories
-    for subcategory_id in range(len(subcategories[:5])):
+def create_tabs():
+    login(init=True)
+    wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '[class="ipn-Classification ipn-Classification-open "]')))
+    categories = driver.find_elements_by_css_selector('[class="ipn-Classification ipn-Classification-open "]')
+    # Only first category (Football)
+    for category_id in range(len(categories[:1])):
+        category = categories[category_id]
+        # category.click()
+        time.sleep(1)
+        # item['category_name'] = category.find_element_by_css_selector('[class="ipn-ClassificationButton_Label "]').text
         wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '[class="ipn-Competition "]')))
         subcategories = category.find_elements_by_css_selector('[class="ipn-Competition "]')
-        subcategory = subcategories[subcategory_id]
-        # item['category_name'] = category.find_element_by_css_selector('[class="ipn-ClassificationButton_Label "]').text
-        # item['subcategory_name'] = subcategory.find_element_by_css_selector('[class="ipn-CompetitionButton "]').text
-        stats = subcategory.find_elements_by_css_selector('[class="ipn-CompetitionContainer "]>div')
-        # If there is more that one match in category
-        if len(stats) > 1:
+        # First 5 subcategories
+        for subcategory_id in range(len(subcategories)):
+            wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '[class="ipn-Competition "]')))
+            subcategories = category.find_elements_by_css_selector('[class="ipn-Competition "]')
+            subcategory = subcategories[subcategory_id]
+            # item['category_name'] = category.find_element_by_css_selector('[class="ipn-ClassificationButton_Label "]').text
+            # item['subcategory_name'] = subcategory.find_element_by_css_selector('[class="ipn-CompetitionButton "]').text
+            stats = subcategory.find_elements_by_css_selector('[class="ipn-CompetitionContainer "]>div')
+            # If there is more that one match in category
+            # if len(stats) > 1:
             for stat_id in range(len(stats)):
                 category, subcategory, stat = open_new_tab(category_id, subcategory_id, stat_id)
 
+create_tabs()
 windows = driver.window_handles
+items = []
 
 
 def run():
-    for window in windows:
+    for window in windows[1:]:
         item = {}
         driver.switch_to.window(window)
         # Turn on if stats is not updating
-        time.sleep(1)
+        # time.sleep(1)
         stat = driver.find_element_by_css_selector('[class*="ipn-Fixture-selected"]')
         # teams = wait.until(EC.presence_of_element_located((By.CLASS_NAME, 'ipn-TeamStack_Team')))
         teams = stat.find_elements_by_class_name('ipn-TeamStack_Team')
@@ -153,20 +152,27 @@ def run():
         items.append(item.copy())
 
 
-for i in range(1000):
-    run()
+for i in range(100):
+    try:
+        run()
+    except (KeyboardInterrupt, SystemExit):
+        print('Interupted')
+        driver.close()
+
 
 driver.close()
 
-item_keys = set()
-for item in items:
-    for key in item:
-        item_keys.add(key)
 
+def create_fieldnames():
+    item_keys = set()
+    for item in items:
+        for key in item:
+            item_keys.add(key)
+    return item_keys
 
 
 with open('bet365.csv', 'w') as f:
-    writer = csv.DictWriter(f, fieldnames=sorted(item_keys))
+    writer = csv.DictWriter(f, fieldnames=create_fieldnames())
     writer.writeheader()
     for item in items:
         writer.writerow(item)
