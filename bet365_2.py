@@ -6,28 +6,58 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-# from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.proxy import Proxy, ProxyType
+import random
+from fake_useragent import UserAgent
+from selenium.webdriver import FirefoxProfile
 
 
+# myProxy = "s30c4f3:J1h2OsZ@93.190.43.137:65233"
+#
+# proxy = Proxy({
+#     'proxyType': ProxyType.MANUAL,
+#     'httpProxy': myProxy,
+#     'ftpProxy': myProxy,
+#     'sslProxy': myProxy,
+#     'noProxy': '' # set this value as desired
+#     })
+
+ua = UserAgent()
+user_agent = ua.random
+
+# FIREFOX
 options = webdriver.FirefoxOptions()
-# proxy = ""
-# user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36"
-# options.add_argument("user-agent=%s" % user_agent)
+options.add_argument("user-agent=%s" % user_agent)
+
+# options.set_preference("user_agent", user_agent)
+# profile = FirefoxProfile()
+# profile.set_preference("browser.cache.disk.enable", False)
+# profile.set_preference("browser.cache.memory.enable", False)
+# profile.set_preference("browser.cache.offline.enable", False)
+# profile.set_preference("network.http.use-cache", False)
+
 # options.add_argument('--headless')
 # options.add_argument('--disable-gpu')
 # options.add_argument('--hide-scrollbars')
-driver = webdriver.Firefox(options=options)
+driver = webdriver.Firefox(options=options)#, firefox_profile=profile)
+
+# options = Options()
+# options.add_argument('--disable-extensions')
+# options.add_argument('--profile-directory=Default')
+# options.add_argument("--incognito")
+# options.add_argument("--disable-plugins-discovery")
+# options.add_argument("--start-maximized")
+# driver = webdriver.Chrome(options=options)
+
 wait = WebDriverWait(driver, 10)
 # driver.implicitly_wait(10)
 
 
 def login(init=False):
     driver.get('https://www.bet365.com/en/')
-    # driver.find_element_by_css_selector('[title="Live In-Play"]').click()
-
-    if init:
-        elem = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '[title="Live In-Play"]')))
-        elem.click()
+    elem = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '[title="Live In-Play"]')))
+    elem.click()
     elem = wait.until(EC.presence_of_element_located((By.XPATH, '//*[text()="In-Play"]')))
     elem.click()
     elem = wait.until(EC.presence_of_element_located((By.XPATH, '//*[text()="Event View"]')))
@@ -38,7 +68,9 @@ def login(init=False):
 def open_new_tab(category_index, subcategory_index, stat_index):
     driver.execute_script("window.open('');")
     driver.switch_to.window(driver.window_handles[-1])
-    time.sleep(0.1)
+    rand = random.uniform(5,10)
+    print(rand)
+    time.sleep(rand)
     login()
     wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '[class="ipn-Classification ipn-Classification-open "]')))
     categories = driver.find_elements_by_css_selector('[class="ipn-Classification ipn-Classification-open "]')
@@ -64,7 +96,7 @@ def create_tabs():
     for category_id in range(len(categories[:1])):
         category = categories[category_id]
         # category.click()
-        time.sleep(1)
+        # time.sleep(1)
         # item['category_name'] = category.find_element_by_css_selector('[class="ipn-ClassificationButton_Label "]').text
         wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '[class="ipn-Competition "]')))
         subcategories = category.find_elements_by_css_selector('[class="ipn-Competition "]')
@@ -79,6 +111,8 @@ def create_tabs():
             # If there is more that one match in category
             # if len(stats) > 1:
             for stat_id in range(len(stats)):
+                driver.delete_all_cookies()
+                print(len(driver.window_handles))
                 category, subcategory, stat = open_new_tab(category_id, subcategory_id, stat_id)
 
 create_tabs()
@@ -91,7 +125,8 @@ def run():
         item = {}
         driver.switch_to.window(window)
         # Turn on if stats is not updating
-        # time.sleep(1)
+        # TODO: wait until execution of js is finished
+        time.sleep(0.1)
         stat = driver.find_element_by_css_selector('[class*="ipn-Fixture-selected"]')
         # teams = wait.until(EC.presence_of_element_located((By.CLASS_NAME, 'ipn-TeamStack_Team')))
         teams = stat.find_elements_by_class_name('ipn-TeamStack_Team')
